@@ -1,0 +1,36 @@
+name: Copilot Agent Setup
+
+# Triggered internally by GitHub Copilot when analyzing or running tasks
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    # Must be named exactly 'copilot-setup-steps'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      # Required if you want to clone the repo to install dependencies manually
+      contents: read
+
+    steps:
+      # Step 1: Check out the repository source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up languages and runtimes needed for your app (Examples below)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Step 3: Install project dependencies so Copilot can run local tests
+      - name: Install Dependencies
+        run: |
+          npm install
+          pip install -r requirements.txt
