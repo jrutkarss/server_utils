@@ -1,11 +1,196 @@
+<!-- AdminWebApp/templates/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <!-- autorefresh -->
+       <meta http-equiv="refresh" content="10"> 
+       <!-- autorefreh end -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin App</title>
+    <title>Enterprise Infrastructure Management Platform</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 25px;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .hostname {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-server {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-laptop {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 0.95rem;
+        }
+
+        .metric-label {
+            color: #64748b;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 8px;
+            width: 100%;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: #3b82f6;
+            height: 100%;
+        }
+
+        .warn {
+            background: #ef4444 !important;
+        }
+
+        .footer-note {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 15px;
+            text-align: right;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Admin App</h1>
+
+    <h1>🖥️ Fleet Telemetry Dashboard</h1>
+
+    <div class="grid">
+        {% for item in devices_data %}
+        <div class="card">
+            <div class="card-header">
+                <span class="hostname">{{ item.info.hostname }}</span>
+                <span
+                    class="badge {% if item.info.device_role == 'server' %}badge-server{% else %}badge-laptop{% endif %}">
+                    {{ item.info.platform }} ({{ item.info.device_role }})
+                </span>
+            </div>
+
+            <div class="metric-row">
+                <span class="metric-label">IP Address:</span>
+                <span class="metric-value">{{ item.info.ip_address }}</span>
+            </div>
+
+            {% if item.metrics %}
+            <!-- CPU Usage Metrics Module -->
+            <div>
+                <div class="metric-row">
+                    <span class="metric-label">💻 CPU Load:</span>
+                    <span class="metric-value">{{ item.metrics.cpu_usage_pct }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ item.metrics.cpu_usage_pct }}%"></div>
+                </div>
+            </div>
+
+            <!-- Memory Usage Metrics Module -->
+            <div>
+                <div class="metric-row">
+                    <span class="metric-label">🧠 RAM Load:</span>
+                    <span class="metric-value">{{ item.metrics.ram_usage_pct }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ item.metrics.ram_usage_pct }}%"></div>
+                </div>
+            </div>
+
+            <!-- Storage Disk Space Metrics Module -->
+            <div>
+                <div class="metric-row">
+                    <span class="metric-label">💾 C:\ Drive Usage:</span>
+                    <span class="metric-value">{{ item.metrics.disk_usage_pct }}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ item.metrics.disk_usage_pct }}%"></div>
+                </div>
+            </div>
+
+            <div class="metric-row" style="margin-top: 15px;">
+                <span class="metric-label">🌡️ Core Temperature:</span>
+                <span class="metric-value">
+                    {% if item.metrics.cpu_temp_celsius > -1 %}
+                    {{ item.metrics.cpu_temp_celsius }}°C
+                    {% else %}
+                    Unavailable
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="footer-note">Last Check-in: {{ item.metrics.timestamp|date:"Y-m-d H:i:s" }}</div>
+            {% else %}
+            <p style="color: #94a3b8; font-style: italic; text-align: center; margin: 30px 0;">
+                Waiting for agent payload telemetry stream...
+            </p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p>No managed assets reporting telemetry logs yet.</p>
+        {% endfor %}
+    </div>
+
 </body>
+
 </html>
