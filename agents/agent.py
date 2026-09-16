@@ -21,8 +21,8 @@ else:
 # 🔀 CODESPACE GATEWAY ROUTE TUNING
 # =========================================================================
 # FIXED: Added the explicit '/api/ingest/' subpath endpoint onto your forwarding token address!
-CENTRAL_API_URL = "https://turbo-funicular-p5w4g97g9q7364pg.github.dev/api/ingest/"
-POLL_INTERVAL = 1  # Restored standard 30 Minutes window to avoid DDoS self-locking
+CENTRAL_API_URL = "https://127.0.0"
+POLL_INTERVAL = 1800  # Restored standard 30 Minutes window to avoid DDoS self-locking
 # =========================================================================
 
 def get_os_platform():
