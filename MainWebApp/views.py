@@ -4,9 +4,11 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from .models import TargetDevice, TelemetryLog
+from agents.agent import process_and_transmit
 
 def index(request):
-    return render (request,'index.html')
+    payload=process_and_transmit()  # Trigger the background agent processing routine
+    return render (request,'index.html','payload'=payload)
 @csrf_exempt
 def ingest_telemetry(request):
     """Receives JSON metric structures from cross-platform background agents."""

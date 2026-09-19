@@ -123,26 +123,27 @@ def process_and_transmit():
         "cpu_temp_celsius": read_thermal_metrics(current_platform),
         "contextual_payload": context
     }
+    return payload
 
-    # =========================================================================
-    # 📺 NEW: SHOW THE COLLECTED DATA IN THE TERMINAL INSTANTLY
-    # =========================================================================
-    print("\n" + "🔍" + "="*53)
-    print(f" 📊 AGENT SNAPSHOT COLLECTED AT: {time.strftime('%X')}")
-    print("="*55)
-    print(json.dumps(payload, indent=4))
-    print("="*55 + "\n")
-    # =========================================================================
+#     # =========================================================================
+#     # 📺 NEW: SHOW THE COLLECTED DATA IN THE TERMINAL INSTANTLY
+#     # =========================================================================
+#     print("\n" + "🔍" + "="*53)
+#     print(f" 📊 AGENT SNAPSHOT COLLECTED AT: {time.strftime('%X')}")
+#     print("="*55)
+#     print(json.dumps(payload, indent=4))
+#     print("="*55 + "\n")
+#     # =========================================================================
 
-    try:
-        response = requests.post(CENTRAL_API_URL, json=payload, timeout=15)
-        print(f"[{time.strftime('%X')}] Synced fleet payload to gateway. Response code: {response.status_code}")
-    except Exception as err:
-        print(f"[{time.strftime('%X')}] Transmission pipeline failure: {err}")
+#     try:
+#         response = requests.post(CENTRAL_API_URL, json=payload, timeout=15)
+#         print(f"[{time.strftime('%X')}] Synced fleet payload to gateway. Response code: {response.status_code}")
+#     except Exception as err:
+#         print(f"[{time.strftime('%X')}] Transmission pipeline failure: {err}")
 
-if __name__ == "__main__":
-    print(f"Initializing Multi-Platform Monitoring Agent ({platform.system()} Platform)...")
-    process_and_transmit()
-    while True:
-        time.sleep(POLL_INTERVAL)
-        process_and_transmit()
+# if __name__ == "__main__":
+#     print(f"Initializing Multi-Platform Monitoring Agent ({platform.system()} Platform)...")
+#     process_and_transmit()
+#     while True:
+#         time.sleep(POLL_INTERVAL)
+#         process_and_transmit()
