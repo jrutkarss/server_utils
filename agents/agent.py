@@ -1,4 +1,4 @@
-# agents/agents.py
+# agents/agent.py
 import os
 import sys
 import time
@@ -7,6 +7,7 @@ import platform
 import psutil
 import requests
 import json
+from datetime import datetime
 
 # Conditional Windows Imports - Prevents Linux/macOS crashes
 if platform.system().lower() == 'windows':
@@ -18,11 +19,10 @@ else:
     wmi = None
 
 # =========================================================================
-# 🔀 CODESPACE GATEWAY ROUTE TUNING
+# 🔀 CENTRAL API CONFIGURATION
 # =========================================================================
-# FIXED: Added the explicit '/api/ingest/' subpath endpoint onto your forwarding token address!
-CENTRAL_API_URL = "https://127.0.0"
-POLL_INTERVAL = 1800  # Restored standard 30 Minutes window to avoid DDoS self-locking
+CENTRAL_API_URL = os.environ.get('CENTRAL_API_URL', 'http://localhost:8000/api/ingest/')
+POLL_INTERVAL = int(os.environ.get('POLL_INTERVAL', 1800))  # 30 minutes
 # =========================================================================
 
 def get_os_platform():
@@ -44,7 +44,6 @@ def read_thermal_metrics(platform_str):
                 if zone in temps and temps[zone]:
                     return float(temps[zone][0].current)
             if temps:
-                # Safe array indexing extraction fallback logic
                 first_sensor_group = list(temps.values())[0]
                 if first_sensor_group:
                     return float(first_sensor_group[0].current)
@@ -53,7 +52,6 @@ def read_thermal_metrics(platform_str):
             
     elif platform_str == 'windows' and wmi is not None:
         try:
-            # Relies on active open background processing structures like LibreHardwareMonitor
             w = wmi.WMI(namespace="root\\OpenHardwareMonitor")
             for sensor in w.Sensor():
                 if sensor.SensorType == 'Temperature' and 'cpu' in sensor.Name.lower():
@@ -123,27 +121,24 @@ def process_and_transmit():
         "cpu_temp_celsius": read_thermal_metrics(current_platform),
         "contextual_payload": context
     }
+    
+    print("\n" + "🔍" + "="*53)
+    print(f" 📊 AGENT SNAPSHOT COLLECTED AT: {time.strftime('%X')}")
+    print("="*55)
+    print(json.dumps(payload, indent=4))
+    print("="*55 + "\n")
+
+    try:
+        response = requests.post(CENTRAL_API_URL, json=payload, timeout=15)
+        print(f"[{time.strftime('%X')}] Synced fleet payload to gateway. Response code: {response.status_code}")
+    except Exception as err:
+        print(f"[{time.strftime('%X')}] Transmission pipeline failure: {err}")
+    
     return payload
 
-#     # =========================================================================
-#     # 📺 NEW: SHOW THE COLLECTED DATA IN THE TERMINAL INSTANTLY
-#     # =========================================================================
-#     print("\n" + "🔍" + "="*53)
-#     print(f" 📊 AGENT SNAPSHOT COLLECTED AT: {time.strftime('%X')}")
-#     print("="*55)
-#     print(json.dumps(payload, indent=4))
-#     print("="*55 + "\n")
-#     # =========================================================================
-
-#     try:
-#         response = requests.post(CENTRAL_API_URL, json=payload, timeout=15)
-#         print(f"[{time.strftime('%X')}] Synced fleet payload to gateway. Response code: {response.status_code}")
-#     except Exception as err:
-#         print(f"[{time.strftime('%X')}] Transmission pipeline failure: {err}")
-
-# if __name__ == "__main__":
-#     print(f"Initializing Multi-Platform Monitoring Agent ({platform.system()} Platform)...")
-#     process_and_transmit()
-#     while True:
-#         time.sleep(POLL_INTERVAL)
-#         process_and_transmit()
+if __name__ == "__main__":
+    print(f"Initializing Multi-Platform Monitoring Agent ({platform.system()} Platform)...")
+    process_and_transmit()
+    while True:
+        time.sleep(POLL_INTERVAL)
+        process_and_transmit()
